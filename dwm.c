@@ -207,6 +207,7 @@ static void grabbuttons(Client *c, int focused);
 static void grabkeys(void);
 static void keypress(XEvent *e);
 static void killclient(const Arg *arg);
+static void hardkillclient(const Arg *arg);
 static void manage(Window w, XWindowAttributes *wa);
 static void mappingnotify(XEvent *e);
 static void maprequest(XEvent *e);
@@ -1012,6 +1013,31 @@ void killclient(const Arg *arg) {
   }
 }
 
+void hardkillclient(const Arg *arg) {
+  if (!selmon->sel)
+    return;
+
+  Window w = selmon->sel->win;
+  Atom pid_atom = XInternAtom(dpy, "_NET_WM_PID", True);
+  Atom actual_type;
+  int actual_format;
+  unsigned long nitems, bytes_after;
+  unsigned char *prop = NULL;
+  int status = XGetWindowProperty(dpy, w, pid_atom, 0, 1, False, XA_CARDINAL,
+                                  &actual_type, &actual_format, &nitems,
+                                  &bytes_after, &prop);
+
+  if (status == Success && prop) {
+    pid_t pid = *(pid_t *)prop;
+    if (pid > 0) {
+      char cmd[64];
+      snprintf(cmd, sizeof(cmd), "kill -9 %d", pid);
+      system(cmd);
+    }
+    XFree(prop);
+  }
+}
+
 void manage(Window w, XWindowAttributes *wa) {
   Client *c, *t = NULL;
   Window trans = None;
@@ -1592,6 +1618,7 @@ void spawn(const Arg *arg) {
 void tag(const Arg *arg) {
   if (selmon->sel && arg->ui & TAGMASK) {
     selmon->sel->tags = arg->ui & TAGMASK;
+    view(arg);
     focus(NULL);
     arrange(selmon);
   }

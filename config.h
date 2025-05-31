@@ -84,6 +84,7 @@ static const Key keys[] = {
     {MODKEY, XK_Return, zoom, {0}},
     {MODKEY, XK_Tab, view, {0}},
     {MODKEY, XK_q, killclient, {0}},
+    {MODKEY, XK_x, hardkillclient, {0}},
     {MODKEY | ShiftMask, XK_space, togglefloating, {0}},
     {MODKEY | ShiftMask, XK_f, togglefullscr, {0}},
     {MODKEY, XK_0, view, {.ui = ~0}},
